@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>分數・小數・百分比 積木教具</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+  :root{
+    --bg:#FDF6EC;
+    --panel:#FFFFFF;
+    --border:#E7DFD2;
+    --text:#3A3630;
+    --text-light:#8A8378;
+    --accent:#FF7A59;
+
+    --c-1:#FF5C5C;
+    --c-2:#FF9F43;
+    --c-3:#FFD93D;
+    --c-4:#A9D93D;
+    --c-5:#4CAF7D;
+    --c-6:#26A69A;
+    --c-8:#45B8E0;
+    --c-10:#4C6FE0;
+    --c-12:#8B6FDB;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    font-family:"Noto Sans TC",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #app{display:flex;flex-direction:column;height:100%;min-height:100vh;}
+
+  .title-font{font-family:"Baloo 2",sans-serif;}
+
+  header{
+    background:var(--panel);
+    border-bottom:2px solid var(--border);
+    padding:12px 18px;
+  }
+  header h1{
+    font-size:19px;
+    margin:0 0 10px 0;
+    color:var(--accent);
+  }
+  .control-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px 20px;
+  }
+  .btn-group{
+    display:flex;
+    gap:6px;
+    background:#F3EEE4;
+    padding:4px;
+    border-radius:12px;
+  }
+  .btn-group button{
+    font-family:"Baloo 2",sans-serif;
+    font-size:14px;
+    border:none;
+    background:transparent;
+    color:var(--text-light);
+    padding:8px 14px;
+    border-radius:9px;
+    cursor:pointer;
+    min-height:38px;
+    transition:background .15s, color .15s, box-shadow .15s;
+  }
+  .btn-group button.active{
+    background:var(--accent);
+    color:#fff;
+    box-shadow:0 2px 6px rgba(255,122,89,0.35);
+  }
+
+  main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:18px;
+    gap:10px;
+    min-height:0;
+    overflow-y:auto;
+  }
+
+  #stage-card{
+    width:100%;
+    max-width:640px;
+    background:var(--panel);
+    border-radius:20px;
+    border:2px solid var(--border);
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+  }
+
+  #stage{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:280px;
+  }
+
+  #bar-track{
+    width:100%;
+    max-width:560px;
+    height:90px;
+    background:#F6F1E7;
+    border:3px dashed #D8CFBF;
+    border-radius:16px;
+    display:flex;
+    overflow:hidden;
+  }
+  .bar-piece{
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-family:"Baloo 2",sans-serif;
+    font-weight:700;
+    font-size:15px;
+    border-right:2px solid rgba(255,255,255,0.6);
+    cursor:pointer;
+    flex-shrink:0;
+    transition:filter .15s;
+  }
+  .bar-piece:hover{filter:brightness(1.06);}
+  .bar-piece:last-child{border-right:none;}
+  .bar-empty{
+    height:100%;
+    background:repeating-linear-gradient(45deg,#EFE9DC,#EFE9DC 8px,#F6F1E7 8px,#F6F1E7 16px);
+    flex-shrink:0;
+  }
+
+  #stage-info{
+    font-size:14px;
+    color:var(--text-light);
+  }
+  #stage-info b{color:var(--text);}
+
+  .stage-controls{
+    display:flex;
+    gap:10px;
+  }
+  .action-btn{
+    font-family:"Baloo 2",sans-serif;
+    font-size:14px;
+    border:none;
+    border-radius:10px;
+    padding:9px 16px;
+    cursor:pointer;
+    min-height:40px;
+  }
+  .action-btn.clear{background:#EFE7DA;color:var(--text);}
+  .action-btn.clear:hover{background:#E5DACB;}
+
+  #hint-line{
+    font-size:12px;
+    color:var(--text-light);
+    text-align:center;
+  }
+
+  footer{
+    background:var(--panel);
+    border-top:2px solid var(--border);
+    padding:14px 18px calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+  footer h2{
+    font-size:13px;
+    color:var(--text-light);
+    margin:0 0 10px 0;
+    font-weight:500;
+  }
+  #palette{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    justify-content:center;
+  }
+  .palette-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    cursor:grab;
+    touch-action:none;
+    user-select:none;
+    padding:6px;
+    border-radius:12px;
+    width:64px;
+  }
+  .palette-item svg{width:46px;height:46px;pointer-events:none;}
+  .palette-item .p-label{
+    font-family:"Baloo 2",sans-serif;
+    font-size:13px;
+    font-weight:700;
+    color:var(--text);
+    pointer-events:none;
+  }
+
+  .drag-ghost{
+    position:fixed;
+    pointer-events:none;
+    z-index:999;
+    opacity:0.9;
+    transform:translate(-50%,-50%);
+  }
+  .drag-ghost svg{width:52px;height:52px;}
+
+  #toast{
+    position:fixed;
+    bottom:110px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:#3A3630;
+    color:#fff;
+    padding:10px 18px;
+    border-radius:999px;
+    font-size:13px;
+    opacity:0;
+    transition:opacity .2s, transform .2s;
+    pointer-events:none;
+    z-index:1000;
+    white-space:nowrap;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:480px){
+    .palette-item{width:56px;}
+    .palette-item svg{width:40px;height:40px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1 class="title-font">分數・小數・百分比 積木教具</h1>
+    <div class="control-row">
+      <div class="btn-group" id="mode-group">
+        <button data-mode="pie" class="active">圓餅圖模式</button>
+        <button data-mode="bar">分數長條模式</button>
+      </div>
+      <div class="btn-group" id="label-group">
+        <button data-label="fraction" class="active">分數</button>
+        <button data-label="percent">百分比</button>
+        <button data-label="decimal">小數</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="stage-card">
+      <div id="stage"></div>
+      <div id="stage-info">目前總和：<b id="sum-text">0</b></div>
+      <div class="stage-controls">
+        <button class="action-btn clear" id="clear-btn">清空舞台</button>
+      </div>
+      <div id="hint-line">把下方積木拖曳（或點一下）放進舞台；點擊舞台上已放入的積木可以移除它</div>
+    </div>
+  </main>
+
+  <footer>
+    <h2>元件庫</h2>
+    <div id="palette"></div>
+  </footer>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  var PIECES = [
+    {key:'1',  num:1, den:1,  color:'var(--c-1)'},
+    {key:'1/2',num:1, den:2,  color:'var(--c-2)'},
+    {key:'1/3',num:1, den:3,  color:'var(--c-3)'},
+    {key:'1/4',num:1, den:4,  color:'var(--c-4)'},
+    {key:'1/5',num:1, den:5,  color:'var(--c-5)'},
+    {key:'1/6',num:1, den:6,  color:'var(--c-6)'},
+    {key:'1/8',num:1, den:8,  color:'var(--c-8)'},
+    {key:'1/10',num:1,den:10, color:'var(--c-10)'},
+    {key:'1/12',num:1,den:12, color:'var(--c-12)'}
+  ];
+
+  var mode = 'pie';
+  var labelMode = 'fraction';
+  var placed = [];
+  var idCounter = 0;
+
+  var stageEl = document.getElementById('stage');
+  var sumTextEl = document.getElementById('sum-text');
+  var paletteEl = document.getElementById('palette');
+  var toastEl = document.getElementById('toast');
+
+  function pieceByKey(key){
+    for(var i=0;i<PIECES.length;i++){ if(PIECES[i].key===key) return PIECES[i]; }
+    return null;
+  }
+  function valueOf(key){
+    var p = pieceByKey(key);
+    return p.num / p.den;
+  }
+  function resolveColor(cssVar){
+    return getComputedStyle(document.documentElement).getPropertyValue(cssVar.replace('var(','').replace(')','')).trim();
+  }
+
+  // ---- label formatting ----
+  function formatFraction(p){
+    return p.den === 1 ? '1' : (p.num + '/' + p.den);
+  }
+  function formatPercent(val){
+    var p = val * 100;
+    if(Math.abs(p - Math.round(p)) < 1e-9) return Math.round(p) + '%';
+    return p.toFixed(1) + '%';
+  }
+  function formatDecimal(val){
+    var d = Math.round(val * 1000) / 1000;
+    if(Number.isInteger(d)) return String(d);
+    return String(d);
+  }
+  function labelFor(key){
+    var p = pieceByKey(key);
+    var val = p.num / p.den;
+    if(labelMode === 'fraction') return formatFraction(p);
+    if(labelMode === 'percent') return formatPercent(val);
+    return formatDecimal(val);
+  }
+
+  // ---- toast ----
+  var toastTimer = null;
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 1600);
+  }
+
+  // ---- palette icons (mini pie wedge) ----
+  function makeMiniWedgeSVG(piece){
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns,'svg');
+    svg.setAttribute('viewBox','0 0 44 44');
+    var bg = document.createElementNS(ns,'circle');
+    bg.setAttribute('cx',22); bg.setAttribute('cy',22); bg.setAttribute('r',19);
+    bg.setAttribute('fill','#F0EAE0');
+    svg.appendChild(bg);
+    if(piece.den === 1){
+      var full = document.createElementNS(ns,'circle');
+      full.setAttribute('cx',22); full.setAttribute('cy',22); full.setAttribute('r',19);
+      full.setAttribute('fill', piece.color);
+      svg.appendChild(full);
+    } else {
+      var path = document.createElementNS(ns,'path');
+      path.setAttribute('d', arcPath(22,22,19,0,360*(piece.num/piece.den)));
+      path.setAttribute('fill', piece.color);
+      svg.appendChild(path);
+      var outline = document.createElementNS(ns,'circle');
+      outline.setAttribute('cx',22); outline.setAttribute('cy',22); outline.setAttribute('r',19);
+      outline.setAttribute('fill','none');
+      outline.setAttribute('stroke','#D8CFBF');
+      outline.setAttribute('stroke-width','1.5');
+      svg.appendChild(outline);
+    }
+    return svg;
+  }
+
+  // ---- arc math (0deg = top, clockwise) ----
+  function polarToCartesian(cx, cy, r, angleDeg){
+    var rad = (angleDeg - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+  function arcPath(cx, cy, r, startDeg, endDeg){
+    if(endDeg - startDeg >= 359.999){
+      // full circle: draw as two half arcs to avoid degenerate path
+      var mid = startDeg + 180;
+      var p1 = arcPathPartial(cx,cy,r,startDeg,mid);
+      var p2 = arcPathPartial(cx,cy,r,mid,endDeg);
+      return p1 + ' ' + p2;
+    }
+    return arcPathPartial(cx,cy,r,startDeg,endDeg);
+  }
+  function arcPathPartial(cx, cy, r, startDeg, endDeg){
+    var startPt = polarToCartesian(cx, cy, r, startDeg);
+    var endPt = polarToCartesian(cx, cy, r, endDeg);
+    var largeArc = (endDeg - startDeg) > 180 ? 1 : 0;
+    return ['M', cx, cy, 'L', startPt.x, startPt.y, 'A', r, r, 0, largeArc, 1, endPt.x, endPt.y, 'Z'].join(' ');
+  }
+
+  // ---- build palette ----
+  PIECES.forEach(function(piece){
+    var item = document.createElement('div');
+    item.className = 'palette-item';
+    item.appendChild(makeMiniWedgeSVG(piece));
+    var lbl = document.createElement('div');
+    lbl.className = 'p-label';
+    lbl.textContent = labelFor(piece.key);
+    item.appendChild(lbl);
+    item.dataset.key = piece.key;
+    attachDragSource(item, piece.key);
+    paletteEl.appendChild(item);
+  });
+
+  function refreshPaletteLabels(){
+    var items = paletteEl.querySelectorAll('.palette-item');
+    items.forEach(function(item){
+      var key = item.dataset.key;
+      var lbl = item.querySelector('.p-label');
+      lbl.textContent = labelFor(key);
+    });
+  }
+
+  // ---- drag source (pointer events; tap also works) ----
+  function attachDragSource(el, key){
+    var startX, startY, moved, ghost;
+    el.addEventListener('pointerdown', function(e){
+      startX = e.clientX; startY = e.clientY; moved = false;
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', function(e){
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if(!moved && Math.hypot(dx,dy) > 8){
+        moved = true;
+        ghost = document.createElement('div');
+        ghost.className = 'drag-ghost';
+        ghost.appendChild(makeMiniWedgeSVG(pieceByKey(key)));
+        document.body.appendChild(ghost);
+      }
+      if(ghost){
+        ghost.style.left = e.clientX + 'px';
+        ghost.style.top = e.clientY + 'px';
+      }
+    });
+    el.addEventListener('pointerup', function(e){
+      if(ghost){ ghost.remove(); ghost = null; }
+      if(!moved){
+        // treated as a tap: add directly
+        tryAddPiece(key);
+        return;
+      }
+      var stageRect = document.getElementById('stage-card').getBoundingClientRect();
+      if(e.clientX >= stageRect.left && e.clientX <= stageRect.right &&
+         e.clientY >= stageRect.top && e.clientY <= stageRect.bottom){
+        tryAddPiece(key);
+      }
+    });
+  }
+
+  function tryAddPiece(key){
+    var currentSum = placed.reduce(function(s,p){ return s + valueOf(p.pieceKey); }, 0);
+    var newVal = valueOf(key);
+    if(currentSum + newVal > 1 + 1e-9){
+      showToast('已經超過一個整體了，先清空或移除一些積木吧');
+      return;
+    }
+    placed.push({ id: 'pc' + (++idCounter), pieceKey: key });
+    render();
+  }
+
+  function removePiece(id){
+    placed = placed.filter(function(p){ return p.id !== id; });
+    render();
+  }
+
+  // ---- render ----
+  function render(){
+    stageEl.innerHTML = '';
+    if(mode === 'pie') renderPie(); else renderBar();
+    updateSum();
+  }
+
+  function updateSum(){
+    var sum = placed.reduce(function(s,p){ return s + valueOf(p.pieceKey); }, 0);
+    sum = Math.round(sum * 1000) / 1000;
+    var pct = Math.round(sum * 1000) / 10;
+    sumTextEl.textContent = formatDecimal(sum) + '（' + pct + '%）';
+  }
+
+  function renderPie(){
+    var size = 300, cx = size/2, cy = size/2, r = 130;
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns,'svg');
+    svg.setAttribute('viewBox', '0 0 ' + size + ' ' + size);
+    svg.style.width = '100%';
+    svg.style.maxWidth = '320px';
+    svg.style.height = 'auto';
+
+    var guide = document.createElementNS(ns,'circle');
+    guide.setAttribute('cx',cx); guide.setAttribute('cy',cy); guide.setAttribute('r',r);
+    guide.setAttribute('fill','#F6F1E7');
+    guide.setAttribute('stroke','#D8CFBF');
+    guide.setAttribute('stroke-width','2');
+    guide.setAttribute('stroke-dasharray','6 6');
+    svg.appendChild(guide);
+
+    var angle = 0;
+    placed.forEach(function(p){
+      var piece = pieceByKey(p.pieceKey);
+      var sweep = 360 * (piece.num/piece.den);
+      var g = document.createElementNS(ns,'g');
+      g.style.cursor = 'pointer';
+
+      if(piece.den === 1){
+        var full = document.createElementNS(ns,'circle');
+        full.setAttribute('cx',cx); full.setAttribute('cy',cy); full.setAttribute('r',r);
+        full.setAttribute('fill', resolveColor(piece.color));
+        full.setAttribute('stroke','#fff');
+        full.setAttribute('stroke-width','2');
+        g.appendChild(full);
+      } else {
+        var path = document.createElementNS(ns,'path');
+        path.setAttribute('d', arcPath(cx,cy,r,angle,angle+sweep));
+        path.setAttribute('fill', resolveColor(piece.color));
+        path.setAttribute('stroke','#fff');
+        path.setAttribute('stroke-width','2');
+        g.appendChild(path);
+      }
+
+      var mid = angle + sweep/2;
+      var labelR = r * 0.62;
+      var pt = polarToCartesian(cx, cy, labelR, mid);
+      var text = document.createElementNS(ns,'text');
+      text.setAttribute('x', pt.x);
+      text.setAttribute('y', pt.y);
+      text.setAttribute('text-anchor','middle');
+      text.setAttribute('dominant-baseline','middle');
+      text.setAttribute('fill','#fff');
+      text.setAttribute('font-family','Baloo 2, sans-serif');
+      text.setAttribute('font-weight','700');
+      text.setAttribute('font-size', piece.den === 1 ? '22' : '15');
+      text.textContent = labelFor(p.pieceKey);
+      g.appendChild(text);
+
+      g.addEventListener('click', function(){ removePiece(p.id); });
+      svg.appendChild(g);
+
+      angle += sweep;
+    });
+
+    stageEl.appendChild(svg);
+  }
+
+  function renderBar(){
+    var wrap = document.createElement('div');
+    wrap.id = 'bar-track';
+
+    placed.forEach(function(p){
+      var piece = pieceByKey(p.pieceKey);
+      var val = piece.num/piece.den;
+      var seg = document.createElement('div');
+      seg.className = 'bar-piece';
+      seg.style.width = (val*100) + '%';
+      seg.style.background = resolveColor(piece.color);
+      seg.textContent = labelFor(p.pieceKey);
+      seg.addEventListener('click', function(){ removePiece(p.id); });
+      wrap.appendChild(seg);
+    });
+
+    var sum = placed.reduce(function(s,p){ return s + valueOf(p.pieceKey); }, 0);
+    if(sum < 1 - 1e-9){
+      var empty = document.createElement('div');
+      empty.className = 'bar-empty';
+      empty.style.width = ((1-sum)*100) + '%';
+      wrap.appendChild(empty);
+    }
+
+    stageEl.appendChild(wrap);
+  }
+
+  // ---- mode / label toggles ----
+  document.getElementById('mode-group').addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    document.querySelectorAll('#mode-group button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    mode = btn.dataset.mode;
+    render();
+  });
+
+  document.getElementById('label-group').addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    document.querySelectorAll('#label-group button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    labelMode = btn.dataset.label;
+    refreshPaletteLabels();
+    render();
+  });
+
+  document.getElementById('clear-btn').addEventListener('click', function(){
+    placed = [];
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
